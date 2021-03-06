@@ -14,7 +14,7 @@ import (
 var counter int64 = 0
 
 func TestNewPipeline(t *testing.T) {
-	p := NewPipeline(
+	p := New(
 		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
 	)
 
@@ -22,7 +22,7 @@ func TestNewPipeline(t *testing.T) {
 }
 
 func TestPipeline_Start(t *testing.T) {
-	p := NewPipeline(
+	p := New(
 		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
 	)
 
@@ -33,7 +33,7 @@ func TestPipeline_Start(t *testing.T) {
 }
 
 func TestPipeline_Start_Twice(t *testing.T) {
-	p := NewPipeline(
+	p := New(
 		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
 	)
 	err1 := p.Start()
@@ -44,7 +44,7 @@ func TestPipeline_Start_Twice(t *testing.T) {
 }
 
 func TestPipeline_Start_AfterStop(t *testing.T) {
-	p := NewPipeline(
+	p := New(
 		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
 	)
 	_ = p.Start()
@@ -56,7 +56,7 @@ func TestPipeline_Start_AfterStop(t *testing.T) {
 }
 
 func TestPipeline_Stop(t *testing.T) {
-	p := NewPipeline(
+	p := New(
 		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
 	)
 	_ = p.Start()
@@ -66,7 +66,7 @@ func TestPipeline_Stop(t *testing.T) {
 }
 
 func TestPipeline_Stop_DrainsPipeline(t *testing.T) {
-	p := NewPipeline(&numGen{max: 2}, []contracts.Stage{
+	p := New(&numGen{max: 2}, []contracts.Stage{
 		&waitStage{wait: 1 * time.Second},
 		&counterStage{},
 	}, &sinks.Nil{})
@@ -78,7 +78,7 @@ func TestPipeline_Stop_DrainsPipeline(t *testing.T) {
 }
 
 func TestPipeline_Stop_Twice(t *testing.T) {
-	p := NewPipeline(
+	p := New(
 		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
 	)
 
@@ -94,7 +94,7 @@ func TestPipeline_StopWithContext(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	cancel()
 
-	p := NewPipeline(&numGen{max: 2}, []contracts.Stage{
+	p := New(&numGen{max: 2}, []contracts.Stage{
 		&waitStage{wait: 10 * time.Second},
 		&counterStage{},
 	}, &sinks.Nil{})

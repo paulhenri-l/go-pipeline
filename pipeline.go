@@ -21,7 +21,7 @@ type Pipeline struct {
 	stopped         bool
 }
 
-func NewPipeline(gen contracts.Generator, stages []contracts.Stage, sink contracts.Sink) *Pipeline {
+func New(gen contracts.Generator, stages []contracts.Stage, sink contracts.Sink) *Pipeline {
 	return &Pipeline{
 		mtx:       &sync.Mutex{},
 		generator: gen,
