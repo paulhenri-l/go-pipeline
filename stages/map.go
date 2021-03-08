@@ -35,9 +35,9 @@ func (m *Map) Start(ctx context.Context, items <-chan interface{}) <-chan interf
 					return
 				}
 
-				i, err := m.process(item)
+				i, err := m.stage.Process(item)
 				if err != nil {
-					m.onError(err)
+					// Should probably log or do something
 					break
 				}
 
@@ -47,12 +47,4 @@ func (m *Map) Start(ctx context.Context, items <-chan interface{}) <-chan interf
 	}()
 
 	return out
-}
-
-func (m *Map) process(item interface{}) (interface{}, error) {
-	return m.stage.Process(item)
-}
-
-func (m *Map) onError(err error) {
-	//
 }
