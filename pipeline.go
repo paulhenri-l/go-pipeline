@@ -13,7 +13,6 @@ type Pipeline struct {
 	stages          []contracts.Stage
 	sink            contracts.Sink
 	done            <-chan struct{}
-	generatorDone   chan struct{}
 	generatorCancel context.CancelFunc
 	stagesCancel    context.CancelFunc
 	sinkCancel      context.CancelFunc
@@ -66,11 +65,10 @@ func (p *Pipeline) StopWithContext(ctx context.Context) error {
 	}
 
 	p.shuttingDown = true
-	close(p.generatorDone)
+	p.generatorCancel()
 
 	select {
 	case <-ctx.Done():
-		p.generatorCancel()
 		p.stagesCancel()
 		p.sinkCancel()
 		err = errors.WithStack(ctx.Err())
@@ -95,9 +93,8 @@ func (p *Pipeline) Stopped() bool {
 func (p *Pipeline) startGenerator() <-chan interface{} {
 	ctx, cancel := context.WithCancel(context.Background())
 	p.generatorCancel = cancel
-	p.generatorDone = make(chan struct{})
 
-	return p.generator.Start(ctx, p.generatorDone)
+	return p.generator.Start(ctx)
 }
 
 func (p *Pipeline) startStages(in <-chan interface{}) <-chan interface{} {
