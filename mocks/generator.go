@@ -35,15 +35,15 @@ func (m *MockGenerator) EXPECT() *MockGeneratorMockRecorder {
 }
 
 // Start mocks base method.
-func (m *MockGenerator) Start(arg0 context.Context) <-chan interface{} {
+func (m *MockGenerator) Start(arg0 context.Context, arg1 <-chan struct{}) <-chan interface{} {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Start", arg0)
+	ret := m.ctrl.Call(m, "Start", arg0, arg1)
 	ret0, _ := ret[0].(<-chan interface{})
 	return ret0
 }
 
 // Start indicates an expected call of Start.
-func (mr *MockGeneratorMockRecorder) Start(arg0 interface{}) *gomock.Call {
+func (mr *MockGeneratorMockRecorder) Start(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockGenerator)(nil).Start), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockGenerator)(nil).Start), arg0, arg1)
 }

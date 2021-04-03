@@ -5,5 +5,5 @@ package contracts
 import "context"
 
 type Generator interface {
-	Start(ctx context.Context) <-chan interface{}
+	Start(ctx context.Context, done <-chan struct{}) <-chan interface{}
 }

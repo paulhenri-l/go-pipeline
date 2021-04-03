@@ -110,7 +110,7 @@ type numGen struct {
 	max int
 }
 
-func (n *numGen) Start(ctx context.Context) <-chan interface{} {
+func (n *numGen) Start(ctx context.Context, done <-chan struct{}) <-chan interface{} {
 	out := make(chan interface{})
 
 	go func() {
@@ -120,7 +120,14 @@ func (n *numGen) Start(ctx context.Context) <-chan interface{} {
 			out <- i
 		}
 
-		<-ctx.Done()
+		for {
+			select {
+			case <-done:
+				return
+			case <-ctx.Done():
+				return
+			}
+		}
 	}()
 
 	return out
