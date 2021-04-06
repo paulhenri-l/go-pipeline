@@ -1,4 +1,4 @@
-//go:generate mockgen -package mocks -destination ../mocks/stage.go . Stage,MapStage,FlatMapStage
+//go:generate mockgen -package mocks -destination ../mocks/stage.go . Stage,MapStage,FilterStage,FlatMapStage
 
 package contracts
 
@@ -11,6 +11,10 @@ type Stage interface {
 
 type MapStage interface {
 	Process(interface{}) (interface{}, error)
+}
+
+type FilterStage interface {
+	Process(interface{}) (bool, error)
 }
 
 type FlatMapStage interface {
