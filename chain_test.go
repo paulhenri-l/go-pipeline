@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"github.com/paulhenri-l/go-pipeline/contracts"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestNewChain(t *testing.T) {
 	s2 := &counterStage{&cnt2}
 
 	o := NewChain(
-		context.Background(), in, s1, s2,
+		context.Background(), in, []contracts.Stage{s1, s2},
 	)
 
 	in <- "hello"
@@ -35,7 +36,7 @@ func TestNewChain_Context(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	o := NewChain(ctx, in, s1)
+	o := NewChain(ctx, in, []contracts.Stage{s1})
 	_, ok := <-o
 
 	assert.False(t, ok)

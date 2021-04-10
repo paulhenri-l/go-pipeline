@@ -5,7 +5,7 @@ import (
 	"github.com/paulhenri-l/go-pipeline/contracts"
 )
 
-func NewChain(ctx context.Context, in <-chan interface{}, stages ...contracts.Stage) <-chan interface{} {
+func NewChain(ctx context.Context, in <-chan interface{}, stages []contracts.Stage) <-chan interface{} {
 	previousOut := in
 
 	for _, stage := range stages {
