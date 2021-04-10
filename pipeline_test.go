@@ -2,8 +2,10 @@ package pipeline
 
 import (
 	"context"
+	"github.com/paulhenri-l/go-pipeline/chans"
 	"github.com/paulhenri-l/go-pipeline/contracts"
 	"github.com/paulhenri-l/go-pipeline/sinks"
+	"github.com/paulhenri-l/go-pipeline/stages"
 	"testing"
 	"time"
 
@@ -18,10 +20,14 @@ func TestNewPipeline(t *testing.T) {
 	assert.IsType(t, &Pipeline{}, p)
 }
 
+func TestNewWithSingleStage(t *testing.T) {
+	p := NewWithBluePrint(&numGen{max: 1}, newForwardBluePrint(), &sinks.Nil{})
+
+	assert.IsType(t, &Pipeline{}, p)
+}
+
 func TestPipeline_Start(t *testing.T) {
-	p := New(
-		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
-	)
+	p := NewWithBluePrint(&numGen{max: 1}, newForwardBluePrint(), &sinks.Nil{})
 
 	err := p.Start()
 
@@ -30,9 +36,7 @@ func TestPipeline_Start(t *testing.T) {
 }
 
 func TestPipeline_Start_Twice(t *testing.T) {
-	p := New(
-		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
-	)
+	p := NewWithBluePrint(&numGen{max: 1}, newForwardBluePrint(), &sinks.Nil{})
 	err1 := p.Start()
 	err2 := p.Start()
 
@@ -41,9 +45,7 @@ func TestPipeline_Start_Twice(t *testing.T) {
 }
 
 func TestPipeline_Start_AfterStop(t *testing.T) {
-	p := New(
-		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
-	)
+	p := NewWithBluePrint(&numGen{max: 1}, newForwardBluePrint(), &sinks.Nil{})
 	_ = p.Start()
 	p.Stop()
 
@@ -53,9 +55,7 @@ func TestPipeline_Start_AfterStop(t *testing.T) {
 }
 
 func TestPipeline_Stop(t *testing.T) {
-	p := New(
-		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
-	)
+	p := NewWithBluePrint(&numGen{max: 1}, newForwardBluePrint(), &sinks.Nil{})
 	_ = p.Start()
 	p.Stop()
 
@@ -76,9 +76,7 @@ func TestPipeline_Stop_DrainsPipeline(t *testing.T) {
 }
 
 func TestPipeline_Stop_Twice(t *testing.T) {
-	p := New(
-		&numGen{max: 1}, []contracts.Stage{}, &sinks.Nil{},
-	)
+	p := NewWithBluePrint(&numGen{max: 1}, newForwardBluePrint(), &sinks.Nil{})
 
 	_ = p.Start()
 	e1 := p.StopWithContext(context.Background())
@@ -103,4 +101,20 @@ func TestPipeline_StopWithContext(t *testing.T) {
 
 	assert.Equal(t, int64(0), cnt)
 	assert.Error(t, err)
+}
+
+func newForwardBluePrint() stages.BlueprintFunc {
+	return func(ctx context.Context, in <-chan interface{}) <-chan interface{} {
+		out := make(chan interface{})
+
+		go func() {
+			defer close(out)
+
+			for i := range chans.NewOrDone(ctx, in) {
+				out <- i
+			}
+		}()
+
+		return out
+	}
 }

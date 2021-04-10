@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 	"github.com/paulhenri-l/go-pipeline/contracts"
+	"github.com/paulhenri-l/go-pipeline/stages"
 	"github.com/pkg/errors"
 	"sync"
 )
@@ -29,6 +30,10 @@ func New(gen contracts.Generator, stages []contracts.Stage, sink contracts.Sink)
 		sink:      sink,
 		started:   false,
 	}
+}
+
+func NewWithBluePrint(gen contracts.Generator, bp stages.BlueprintFunc, sink contracts.Sink) *Pipeline {
+	return New(gen, []contracts.Stage{stages.NewBuilder(bp)}, sink)
 }
 
 func (p *Pipeline) Start() error {
