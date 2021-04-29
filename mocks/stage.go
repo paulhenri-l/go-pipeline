@@ -199,6 +199,18 @@ func (m *MockTumblingWindowStage) EXPECT() *MockTumblingWindowStageMockRecorder 
 	return m.recorder
 }
 
+// HandleError mocks base method.
+func (m *MockTumblingWindowStage) HandleError(arg0 error) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "HandleError", arg0)
+}
+
+// HandleError indicates an expected call of HandleError.
+func (mr *MockTumblingWindowStageMockRecorder) HandleError(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleError", reflect.TypeOf((*MockTumblingWindowStage)(nil).HandleError), arg0)
+}
+
 // Process mocks base method.
 func (m *MockTumblingWindowStage) Process(arg0 *repo.Window, arg1 interface{}) {
 	m.ctrl.T.Helper()
@@ -211,16 +223,16 @@ func (mr *MockTumblingWindowStageMockRecorder) Process(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockTumblingWindowStage)(nil).Process), arg0, arg1)
 }
 
-// ToDataPoint mocks base method.
-func (m *MockTumblingWindowStage) ToDataPoint(arg0 int64, arg1 *repo.Window) []interface{} {
+// ToDataPoints mocks base method.
+func (m *MockTumblingWindowStage) ToDataPoints(arg0 int64, arg1 *repo.Window) []interface{} {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ToDataPoint", arg0, arg1)
+	ret := m.ctrl.Call(m, "ToDataPoints", arg0, arg1)
 	ret0, _ := ret[0].([]interface{})
 	return ret0
 }
 
-// ToDataPoint indicates an expected call of ToDataPoint.
-func (mr *MockTumblingWindowStageMockRecorder) ToDataPoint(arg0, arg1 interface{}) *gomock.Call {
+// ToDataPoints indicates an expected call of ToDataPoints.
+func (mr *MockTumblingWindowStageMockRecorder) ToDataPoints(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToDataPoint", reflect.TypeOf((*MockTumblingWindowStage)(nil).ToDataPoint), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToDataPoints", reflect.TypeOf((*MockTumblingWindowStage)(nil).ToDataPoints), arg0, arg1)
 }

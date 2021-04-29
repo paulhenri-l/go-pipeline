@@ -92,6 +92,8 @@ func (p *Pipeline) Started() bool {
 }
 
 func (p *Pipeline) Stopped() bool {
+	p.mtx.Lock()
+	defer p.mtx.Unlock()
 	return p.stopped
 }
 

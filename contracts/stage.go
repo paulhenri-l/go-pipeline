@@ -26,5 +26,6 @@ type FlatMapStage interface {
 
 type TumblingWindowStage interface {
 	Process(window *repo.Window, item interface{})
-	ToDataPoint(window int64, rawPoints *repo.Window) []interface{}
+	ToDataPoints(window int64, rawPoints *repo.Window) []interface{}
+	HandleError(err error)
 }

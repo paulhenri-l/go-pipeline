@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/paulhenri-l/go-pipeline/contracts"
 	"github.com/paulhenri-l/go-pipeline/repo"
+	"github.com/pkg/errors"
 	"math"
 	"time"
 )
@@ -62,7 +63,7 @@ func (t *TumblingWindow) Start(ctx context.Context, items <-chan interface{}) <-
 
 func (t *TumblingWindow) flushAll(out chan<- interface{}) {
 	for windowDob, points := range t.windowStore.PopAll() {
-		for _, p := range t.stage.ToDataPoint(windowDob, points) {
+		for _, p := range t.stage.ToDataPoints(windowDob, points) {
 			out <- p
 		}
 	}
@@ -72,7 +73,7 @@ func (t *TumblingWindow) emmitOldWindows(out chan<- interface{}) {
 	maxWindow := time.Now().Add(t.windowSize * -1 * time.Duration(t.lateWindowsCount)).Unix()
 
 	for windowDob, points := range t.windowStore.PopOlderThan(maxWindow) {
-		for _, p := range t.stage.ToDataPoint(windowDob, points) {
+		for _, p := range t.stage.ToDataPoints(windowDob, points) {
 			out <- p
 		}
 	}
@@ -81,6 +82,9 @@ func (t *TumblingWindow) emmitOldWindows(out chan<- interface{}) {
 func (t *TumblingWindow) process(item interface{}) {
 	event, ok := item.(contracts.Timestamped)
 	if !ok {
+		t.stage.HandleError(
+			errors.Errorf("item does not implement Timestamped interface %+v", item),
+		)
 		return
 	}
 
