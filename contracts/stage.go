@@ -1,8 +1,11 @@
-//go:generate mockgen -package mocks -destination ../mocks/stage.go . Stage,MapStage,FilterStage,FlatMapStage
+//go:generate mockgen -package mocks -destination ../mocks/stage.go . Stage,MapStage,FilterStage,FlatMapStage,TumblingWindowStage
 
 package contracts
 
-import "context"
+import (
+	"context"
+	"github.com/paulhenri-l/go-pipeline/repo"
+)
 
 type Stage interface {
 	Name() string
@@ -19,4 +22,10 @@ type FilterStage interface {
 
 type FlatMapStage interface {
 	Process(context.Context, interface{}) <-chan interface{}
+}
+
+type TumblingWindowStage interface {
+	Process(window *repo.Window, item interface{})
+	ToDataPoints(window int64, rawPoints *repo.Window) []interface{}
+	HandleError(err error)
 }
