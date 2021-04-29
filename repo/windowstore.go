@@ -50,3 +50,6 @@ func (w *WindowStore) PopAll() map[int64]*Window {
 	return out
 }
 
+func (w *WindowStore) Len() int {
+	return len(w.windows)
+}
