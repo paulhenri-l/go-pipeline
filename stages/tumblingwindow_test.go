@@ -92,18 +92,19 @@ func TestTumblingWindow_Start_TimestampedArePassedWithWindow(t *testing.T) {
 
 func TestTumblingWindow_Start_CorrectTimeBin(t *testing.T) {
 	m := newFakeTumblingWindowStage(t)
-	w := NewTumblingWindow(m, time.Second*10, 1)
+	w := NewTumblingWindow(m, time.Minute, time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	items := make(chan interface{})
-	fakeEvent := &someEvent{timestamp: int64(19)}
+	now := time.Now()
+	fakeEvent := &someEvent{timestamp: now.Unix()}
 	out := w.Start(ctx, items)
 
 	m.EXPECT().Process(gomock.Any(), gomock.Any())
 
 	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(tb int64, data *repo.Window) []interface{} {
-		// 10 seconds window, 19 is in the window starting from 10
-		assert.Equal(t, int64(10), tb)
+		bin := now.Add(time.Duration(now.Second()) * time.Second * -1).Unix()
+		assert.Equal(t, bin, tb)
 		return []interface{}{}
 	})
 
@@ -112,9 +113,27 @@ func TestTumblingWindow_Start_CorrectTimeBin(t *testing.T) {
 	<-out
 }
 
+func TestTumblingWindow_Start_OldEventsAreDiscarded(t *testing.T) {
+	m := newFakeTumblingWindowStage(t)
+	w := NewTumblingWindow(m, time.Minute, time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	items := make(chan interface{})
+	now := time.Now()
+	out := w.Start(ctx, items)
+
+	m.EXPECT().Process(gomock.Any(), gomock.Any()).Times(1)
+	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).Return([]interface{}{})
+
+	items <- &someEvent{timestamp: now.Add(time.Minute * -1).Unix()}
+	items <- &someEvent{timestamp: now.Add((time.Minute + time.Second) * -1).Unix()}
+	close(items)
+	<-out
+}
+
 func TestTumblingWindow_Start_WindowOutputOnceTooOld(t *testing.T) {
 	m := newFakeTumblingWindowStage(t)
-	w := NewTumblingWindow(m, time.Second, 2)
+	w := NewTumblingWindow(m, time.Second, time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	items := make(chan interface{})
@@ -131,7 +150,7 @@ func TestTumblingWindow_Start_WindowOutputOnceTooOld(t *testing.T) {
 	_ = <-out
 	receiveTimestamp := time.Now().Unix()
 
-	// Window of one second, with late window count of 1 = 2 seconds wait time
+	// Window of one second, with late window wait of 1s = 2 seconds total wait time
 	assert.GreaterOrEqual(t, receiveTimestamp, fakeEvent.timestamp+int64(3))
 	close(items)
 }

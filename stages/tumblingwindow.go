@@ -10,18 +10,22 @@ import (
 )
 
 type TumblingWindow struct {
-	stage            contracts.TumblingWindowStage
-	windowStore      *repo.WindowStore
-	lateWindowsCount int
-	windowSize       time.Duration
+	stage          contracts.TumblingWindowStage
+	windowStore    *repo.WindowStore
+	lateWindowWait time.Duration
+	windowSize     time.Duration
 }
 
-func NewTumblingWindow(s contracts.TumblingWindowStage, windowSize time.Duration, lateWindowsCount int) *TumblingWindow {
+func NewTumblingWindow(
+	s contracts.TumblingWindowStage,
+	windowSize time.Duration,
+	lateWindowWait time.Duration,
+) *TumblingWindow {
 	return &TumblingWindow{
-		stage:            s,
-		windowStore:      repo.NewWindowStore(),
-		windowSize:       windowSize,
-		lateWindowsCount: lateWindowsCount,
+		stage:          s,
+		windowStore:    repo.NewWindowStore(),
+		windowSize:     windowSize,
+		lateWindowWait: lateWindowWait,
 	}
 }
 
@@ -71,7 +75,7 @@ func (t *TumblingWindow) flushAll(out chan<- interface{}) {
 }
 
 func (t *TumblingWindow) emmitOldWindows(out chan<- interface{}) {
-	maxTimeBin := time.Now().Add(t.windowSize * -1 * time.Duration(t.lateWindowsCount)).Unix()
+	maxTimeBin := time.Now().Add((t.windowSize + t.lateWindowWait) * -1).Unix()
 
 	for timeBin, points := range t.windowStore.PopOlderThan(maxTimeBin) {
 		for _, p := range t.stage.ToDataPoints(timeBin, points) {
@@ -89,7 +93,15 @@ func (t *TumblingWindow) process(item interface{}) {
 		return
 	}
 
+	if t.isTooLate(event) {
+		return
+	}
+
 	timeBin := int64(math.Floor(float64(event.GetTimestamp())/t.windowSize.Seconds()) * t.windowSize.Seconds())
 	w := t.windowStore.Get(timeBin)
 	t.stage.Process(w, item)
+}
+
+func (t *TumblingWindow) isTooLate(timestamped contracts.Timestamped) bool {
+	return timestamped.GetTimestamp() <= time.Now().Add((t.windowSize + t.lateWindowWait) * -1).Unix()
 }
