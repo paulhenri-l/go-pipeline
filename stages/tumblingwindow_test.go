@@ -77,9 +77,9 @@ func TestTumblingWindow_Start_TimestampedArePassedWithWindow(t *testing.T) {
 		(*w)["hello"] = int64(0)
 	})
 
-	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(w int64, data *repo.Window) []interface{} {
+	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(tb int64, data *repo.Window) []interface{} {
 		assert.Equal(t, int64(0), (*data)["hello"])
-		assert.Equal(t, fakeEvent.timestamp, w)
+		assert.Equal(t, fakeEvent.timestamp, tb)
 		return []interface{}{}
 	})
 
@@ -90,7 +90,7 @@ func TestTumblingWindow_Start_TimestampedArePassedWithWindow(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestTumblingWindow_Start_CorrectWindowComputed(t *testing.T) {
+func TestTumblingWindow_Start_CorrectTimeBin(t *testing.T) {
 	m := newFakeTumblingWindowStage(t)
 	w := NewTumblingWindow(m, time.Second*10, 1)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -101,9 +101,9 @@ func TestTumblingWindow_Start_CorrectWindowComputed(t *testing.T) {
 
 	m.EXPECT().Process(gomock.Any(), gomock.Any())
 
-	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(w int64, data *repo.Window) []interface{} {
-		// 10 seconds window, 19 in in the window starting from 10
-		assert.Equal(t, int64(10), w)
+	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(tb int64, data *repo.Window) []interface{} {
+		// 10 seconds window, 19 is in the window starting from 10
+		assert.Equal(t, int64(10), tb)
 		return []interface{}{}
 	})
 
@@ -123,7 +123,7 @@ func TestTumblingWindow_Start_WindowOutputOnceTooOld(t *testing.T) {
 
 	m.EXPECT().Process(gomock.Any(), gomock.Any())
 
-	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(w int64, data *repo.Window) []interface{} {
+	m.EXPECT().ToDataPoints(gomock.Any(), gomock.Any()).DoAndReturn(func(tb int64, data *repo.Window) []interface{} {
 		return []interface{}{"some_data_point"}
 	})
 

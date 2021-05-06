@@ -44,6 +44,7 @@ func (t *TumblingWindow) Start(ctx context.Context, items <-chan interface{}) <-
 				return
 
 			case <-emmitInterval.C:
+				emmitInterval.Stop()
 				t.emmitOldWindows(out)
 				emmitInterval.Reset(time.Second * 1)
 
@@ -62,18 +63,18 @@ func (t *TumblingWindow) Start(ctx context.Context, items <-chan interface{}) <-
 }
 
 func (t *TumblingWindow) flushAll(out chan<- interface{}) {
-	for windowDob, points := range t.windowStore.PopAll() {
-		for _, p := range t.stage.ToDataPoints(windowDob, points) {
+	for timeBin, points := range t.windowStore.PopAll() {
+		for _, p := range t.stage.ToDataPoints(timeBin, points) {
 			out <- p
 		}
 	}
 }
 
 func (t *TumblingWindow) emmitOldWindows(out chan<- interface{}) {
-	maxWindow := time.Now().Add(t.windowSize * -1 * time.Duration(t.lateWindowsCount)).Unix()
+	maxTimeBin := time.Now().Add(t.windowSize * -1 * time.Duration(t.lateWindowsCount)).Unix()
 
-	for windowDob, points := range t.windowStore.PopOlderThan(maxWindow) {
-		for _, p := range t.stage.ToDataPoints(windowDob, points) {
+	for timeBin, points := range t.windowStore.PopOlderThan(maxTimeBin) {
+		for _, p := range t.stage.ToDataPoints(timeBin, points) {
 			out <- p
 		}
 	}
@@ -88,7 +89,7 @@ func (t *TumblingWindow) process(item interface{}) {
 		return
 	}
 
-	bin := int64(math.Floor(float64(event.GetTimestamp())/t.windowSize.Seconds()) * t.windowSize.Seconds())
-	w := t.windowStore.Get(bin)
+	timeBin := int64(math.Floor(float64(event.GetTimestamp())/t.windowSize.Seconds()) * t.windowSize.Seconds())
+	w := t.windowStore.Get(timeBin)
 	t.stage.Process(w, item)
 }

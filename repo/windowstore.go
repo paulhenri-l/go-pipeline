@@ -12,30 +12,30 @@ func NewWindowStore() *WindowStore {
 	}
 }
 
-func (w *WindowStore) Put(windowKey int64, item *Window) {
-	w.windows[windowKey] = item
+func (w *WindowStore) Put(windowTimeBin int64, item *Window) {
+	w.windows[windowTimeBin] = item
 }
 
-func (w *WindowStore) Get(windowKey int64) *Window {
-	value, ok := w.windows[windowKey]
+func (w *WindowStore) Get(windowTimeBin int64) *Window {
+	value, ok := w.windows[windowTimeBin]
 	if !ok {
 		newWindow := make(Window)
-		w.windows[windowKey] = &newWindow
+		w.windows[windowTimeBin] = &newWindow
 		return &newWindow
 	}
 
 	return value
 }
 
-func (w *WindowStore) PopOlderThan(maxWindow int64) map[int64]*Window {
+func (w *WindowStore) PopOlderThan(maxWindowTimeBin int64) map[int64]*Window {
 	out := make(map[int64]*Window)
 	kept := make(map[int64]*Window)
 
-	for k, w := range w.windows {
-		if k < maxWindow {
-			out[k] = w
+	for tb, w := range w.windows {
+		if tb < maxWindowTimeBin {
+			out[tb] = w
 		} else {
-			kept[k] = w
+			kept[tb] = w
 		}
 	}
 
